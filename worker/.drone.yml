@@ -1,0 +1,165 @@
+---
+kind: pipeline
+name: main-pipeline
+type: docker
+
+concurrency:
+  limit: 1
+
+environment:
+  PLUGIN_MIRROR: https://docker.dev.unifonic.com
+
+ecr-details: &ecr-details
+  registry: 759109558351.dkr.ecr.me-south-1.amazonaws.com
+  region: me-south-1
+  purge: false
+
+steps:
+  - name: build-package
+    image: amazoncorretto:21-alpine3.18
+    pull: if-not-exists
+    commands:
+      - echo "sonar.branch.name=$DRONE_BRANCH" >> ./sonar-project.properties
+      - ./mvnw -B clean package -DskipTests
+    volumes:
+      - name: maven-cache
+        path: /root/.m2
+
+  - name: build-and-push-image
+    image: plugins/ecr
+    settings:
+      dockerfile: app.Dockerfile
+      repo: chatbot/chatbot-sched
+      <<: *ecr-details
+      tags:
+        - '${DRONE_COMMIT}'
+    depends_on:
+      - build-package
+
+#  - name: code-analysis
+#    image: aosapps/drone-sonar-plugin
+#    settings:
+#      sonar_host: https://sonar.dev.unifonic.com
+#      sonar_token:
+#        from_secret: SONAR_TOKEN
+#    depends_on:
+#      - build-package
+
+#  - name: pipeline-status-slack-notification
+#    image: plugins/slack
+#    settings:
+#      webhook: https://hooks.slack.com/services/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
+#    depends_on:
+#      - build-and-push-image
+#    when:
+#      status: [ failure ]
+#      branch:
+#        - main
+
+volumes:
+  - name: maven-cache
+    host:
+      path: /java-m2
+
+trigger:
+  event:
+    exclude:
+      - tag
+
+---
+kind: pipeline
+name: integration-deployment
+type: docker
+
+concurrency:
+  limit: 1
+
+environment:
+  PLUGIN_MIRROR: https://docker.dev.unifonic.com
+
+steps:
+  - name: check-and-tag-and-update-helm
+    image: aws-ecr-proxy.dev.unifonic.com/unifonic-dev/unifonic-drone-support
+    pull: if-not-exists
+    environment:
+      REPOSITORY_NAME: chatbot/chatbot-sched
+      ENV: integration
+      SSH_KEY:
+        from_secret: SSH_KEY
+      HELM_CHART_REPO:
+        from_secret: HELM_CHART_REPO
+    commands:
+      - $PYTHONPATH/update-helm.sh chatbot-sched-helm-chart/chatbot-sched-helm-chart
+depends_on: [ main-pipeline ]
+
+trigger:
+  branch:
+    include:
+      - develop
+  event:
+    - push
+---
+kind: pipeline
+name: preprod-deployment
+type: docker
+
+concurrency:
+  limit: 1
+
+environment:
+  PLUGIN_MIRROR: https://docker.dev.unifonic.com
+
+steps:
+  - name: check-and-tag-and-update-helm-preprrod
+    image: aws-ecr-proxy.dev.unifonic.com/unifonic-dev/unifonic-drone-support
+    pull: if-not-exists
+    environment:
+      REPOSITORY_NAME: chatbot/chatbot-sched
+      ENV: preprod
+      SSH_KEY:
+        from_secret: SSH_KEY
+      HELM_CHART_REPO:
+        from_secret: HELM_CHART_REPO
+    commands:
+      - $PYTHONPATH/update-helm.sh chatbot-sched-helm-chart/chatbot-sched-helm-chart
+
+depends_on: [ main-pipeline ]
+
+trigger:
+  branch:
+    include:
+      - preprod
+  event:
+    - push
+---
+kind: pipeline
+name: tag-deployment
+type: docker
+
+concurrency:
+  limit: 1
+
+environment:
+  PLUGIN_MIRROR: https://docker.dev.unifonic.com
+
+steps:
+#  - name: code-analysis
+#    image: 2martens/qodana-jvm-community-drone-plugin
+#    settings:
+#      qodana_token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJvcmdhbml6YXRpb24iOiJwUTBnbCIsInByb2plY3QiOiJBYXhYcSIsInRva2VuIjoiM2tPYUoifQ.sAXZh64mtqgvIwUGCq126lcEdt19jJdoCEuSIyklPBU
+#      args:
+  - name: check-and-tag-and-update-helm
+    image: aws-ecr-proxy.dev.unifonic.com/unifonic-dev/unifonic-drone-support
+    pull: if-not-exists
+    environment:
+      REPOSITORY_NAME: chatbot/chatbot-sched
+      SSH_KEY:
+        from_secret: SSH_KEY
+      HELM_CHART_REPO:
+        from_secret: HELM_CHART_REPO
+    commands:
+      - $PYTHONPATH/update-helm.sh chatbot-sched-helm-chart/chatbot-sched-helm-chart
+
+trigger:
+  ref:
+    - refs/tags/v*?-?*
