@@ -1,7 +1,6 @@
 package io.worker.database.cassandra;
 
 
-import com.datastax.oss.driver.api.core.CqlSessionBuilder;
 import io.worker.config.DBConnector;
 import io.worker.model.Job;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -38,6 +37,19 @@ public class JobsData {
             throw new RuntimeException(e);
         }
     }
+
+    public void dummyData() {
+        try (var dbConnector = connector.getConnection().build()) {
+            for (int j = 0; j < 100; j++) {
+                dbConnector.execute("INSERT INTO scheduler.job (id, frequency, metadata, user_id, created_at, next_exec, last_exec, retry, segment)\n" +
+                        "VALUES (uuid(), '{\"type\": \"every_minute\", \"frequency\", 2}', '{}', 1, toTimestamp(now()), toTimestamp(now()), toTimestamp(now()), 1, " + j + ");");
+            }
+        } catch (Exception e) {
+            log.error("e", e);
+            throw new RuntimeException(e);
+        }
+    }
+
 
     private static final String SELECT_JSOB = """
             select * from scheduler.job where next_exec < toTimestamp(now()) ALLOW FILTERING;

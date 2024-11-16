@@ -19,13 +19,19 @@ services:
       CASSANDRA_CLUSTER_NAME: demo
       CASSANDRA_SEEDS: node1,node2
     restart: unless-stopped
+  kafka-ui:
+    container_name: kafka-ui
+    image: consdata/kouncil:latest
+    ports:
+      - 8083:8080
+    environment:
+        - bootstrapServers=kafka:9094
+        - kouncil.auth.active-provider=inmemory
   kafka:
     image: docker.io/bitnami/kafka:3.4
-    hostname: kafka
     ports:
       - "9092:9092"
       - "9094:9094"
-      - "9093:9093"
     volumes:
       - "kafka:/bitnami"
     environment:
@@ -38,11 +44,43 @@ services:
       - KAFKA_BROKER_ID=1
       - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=1@127.0.0.1:9093
       - ALLOW_PLAINTEXT_LISTENER=yes
-      - KAFKA_MESSAGE_MAX_BYTES= 1048576
       - KAFKA_CFG_NODE_ID=1
       - KAFKA_AUTO_CREATE_TOPICS_ENABLE=true
       - BITNAMI_DEBUG=yes
       - KAFKA_CFG_NUM_PARTITIONS=2
+  worker1:
+    image: worker
+    build:
+        context: ./worker
+        dockerfile: app.Dockerfile
+    environment:
+        - KAFKA_BROKER=kafka:9094
+        - WORKER_ID=0
+        - WORKER_COUNT=2
+        - KAFKA_JOBS_GROUP=jobs
+        - PARTITIONS_COUNT=10
+  worker2:
+    image: worker
+    build:
+      context: ./worker
+      dockerfile: app.Dockerfile
+    environment:
+      - KAFKA_BROKER=kafka:9094
+      - WORKER_ID=1
+      - WORKER_COUNT=2
+      - KAFKA_JOBS_GROUP=jobs
+      - PARTITIONS_COUNT=10
+  job-orchestrator:
+    image: job-orchestrator
+    build:
+      context: ./job-orchestrator
+      dockerfile: app.Dockerfile
+    environment:
+      - KAFKA_BROKER=kafka:9094
+      - WORKER_COUNT=2
+      - PARTITIONS_COUNT=10
+      - WORKER_URLS=http://worker1:8884/health,http://worker2:8884/health
+      - DB_URL=node1
 volumes:
     kafka:
         driver: local

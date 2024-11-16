@@ -1,5 +1,9 @@
-FROM 759109558351.dkr.ecr.me-south-1.amazonaws.com/busybox:21.0.2-alpine3.19
+FROM amazoncorretto:21.0.2-alpine3.19
 
+COPY . /app
+WORKDIR /app
+
+RUN ./mvnw clean package -DskipTests
 # Copy the Quarkus application files
 COPY --chown=185 target/quarkus-app/lib/ /deployments/lib/
 COPY --chown=185 target/quarkus-app/*.jar /deployments/

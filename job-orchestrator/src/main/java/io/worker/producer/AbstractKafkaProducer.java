@@ -62,10 +62,7 @@ public sealed abstract class AbstractKafkaProducer<T extends AbstractKafkaProduc
         Timer.Sample sample = Timer.start(registry);
         boolean success = false;
         try {
-            var traceId = (String) MDC.get(TRACE_ID);
-
             var record = new ProducerRecord<>(this.topicName, partition, generateRand(), msg);
-            record.headers().add(new RecordHeader(TRACE_ID, traceId.getBytes()));
 
             this.producer.send(record);
 

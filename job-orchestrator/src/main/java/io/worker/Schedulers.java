@@ -4,11 +4,10 @@ import static io.worker.util.Common.TRACE_ID;
 
 import io.worker.jobs.JobExecutorScheduler;
 import io.quarkus.scheduler.Scheduled;
-import io.worker.util.TraceIdGen;
+import io.worker.jobs.WorkerStatusScheduler;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import org.jboss.logging.Logger;
-import org.jboss.logging.MDC;
 
 @ApplicationScoped
 public final class Schedulers {
@@ -16,14 +15,17 @@ public final class Schedulers {
   private static final Logger log = Logger.getLogger(Schedulers.class);
 
   @Inject
-  private JobExecutorScheduler jobExecutorScheduler;
+  JobExecutorScheduler jobExecutorScheduler;
 
-  @Scheduled(every = "1m")
+  @Inject
+  WorkerStatusScheduler workerStatusScheduler;
+
+  @Scheduled(every = "1m", concurrentExecution = Scheduled.ConcurrentExecution.SKIP)
   void job() {
-    String traceId = TraceIdGen.hexId();
-    MDC.put(TRACE_ID, traceId);
-
-    log.info("clear ws zombies");
+    log.info("run worker status");
+//    workerStatusScheduler.exec();
+    log.info("run job executor");
     jobExecutorScheduler.exec();
   }
+
 }

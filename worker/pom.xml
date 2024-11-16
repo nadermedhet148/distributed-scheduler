@@ -4,7 +4,7 @@
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>io.orchestrator</groupId>
-  <artifactId>orchestrator</artifactId>
+  <artifactId>worker</artifactId>
   <version>0.1.0</version>
   <packaging>jar</packaging>
 

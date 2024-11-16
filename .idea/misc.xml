@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ExternalStorageConfigurationManager" enabled="true" />
   <component name="FrameworkDetectionExcludesConfiguration">
-    <file type="Quarkus" url="file://$PROJECT_DIR$/orchestrator" />
+    <file type="Quarkus" url="file://$PROJECT_DIR$/job-orchestrator" />
     <file type="Quarkus" url="file://$PROJECT_DIR$/worker" />
   </component>
   <component name="MavenProjectsManager">
@@ -10,6 +10,7 @@
       <list>
         <option value="$PROJECT_DIR$/orchestrator/pom.xml" />
         <option value="$PROJECT_DIR$/worker/pom.xml" />
+        <option value="$PROJECT_DIR$/job-orchestrator/pom.xml" />
       </list>
     </option>
   </component>

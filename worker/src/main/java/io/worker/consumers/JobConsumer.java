@@ -2,13 +2,13 @@ package io.worker.consumers;
 
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.worker.model.Job;
 import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.logging.Logger;
 
-import javax.swing.plaf.basic.BasicBorders;
 import java.util.ArrayList;
 import java.util.Random;
 
@@ -19,9 +19,9 @@ public final class JobConsumer extends AbstractKafkaConsumer<JobConsumer> {
 
     @ConfigProperty(name = "kafka.jobs.topic", defaultValue = "jobs")
     String jobTopic;
-    @ConfigProperty(name = "kafka.jobs.group", defaultValue = "jobs")
+    @ConfigProperty(name = "kafka.jobs.group", defaultValue = "jobs_group")
     String jobGroup;
-    @ConfigProperty(name = "worker.id", defaultValue = "0")
+    @ConfigProperty(name = "worker.id", defaultValue = "2")
     Integer workerId;
     @ConfigProperty(name = "worker.count", defaultValue = "1")
     Integer workersCount;
@@ -34,7 +34,7 @@ public final class JobConsumer extends AbstractKafkaConsumer<JobConsumer> {
 
     @PostConstruct
     void init() {
-        this.initConsumer(jobTopic, jobGroup, getPartitions());
+        this.initConsumer(jobGroup, jobTopic, getPartitions());
     }
 
     private ArrayList<Integer> getPartitions() {
@@ -52,9 +52,12 @@ public final class JobConsumer extends AbstractKafkaConsumer<JobConsumer> {
     @Override
     public void consume(String body) throws Exception {
         try {
-            Thread.sleep((new Random().nextInt(10) + 1) * 10000);
-            System.out.println("Consumed: " + body);
-        }catch (Exception e){
+            var waitingTime = (new Random().nextInt(10) + 1) * 100;
+            Thread.sleep(waitingTime);
+            var job = objectMapper.readValue(body, Job.class);
+            System.out.println("Consumed: " + job.id() + " waiting time: " + waitingTime);
+
+        } catch (Exception e) {
             log.error("Error consuming message", e);
         }
 

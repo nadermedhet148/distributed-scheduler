@@ -26,3 +26,4 @@ CREATE TABLE scheduler.job_exec (
 
 INSERT INTO scheduler.job (id, frequency, metadata, user_id, created_at, next_exec, last_exec, retry, segment)
 VALUES (uuid(), '{"type": "every_minute", "frequency", 2}', '{}', 1, toTimestamp(now()), toTimestamp(now()), toTimestamp(now()), 1, 1);
+
