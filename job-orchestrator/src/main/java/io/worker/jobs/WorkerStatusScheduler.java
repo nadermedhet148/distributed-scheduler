@@ -18,7 +18,7 @@ public class WorkerStatusScheduler {
     private static final Logger log = Logger.getLogger(WorkerStatusScheduler.class);
 
 
-    @ConfigProperty(name = "worker.urls", defaultValue = "http://localhost:8884/health")
+    @ConfigProperty(name = "worker.urls", defaultValue = "http://localhost:8884/health,http://localhost:8885/health,http://localhost:8886/health")
     String workerUrls;
 
 
@@ -27,9 +27,11 @@ public class WorkerStatusScheduler {
 
 
     public void exec() {
-        try {
-            var workerUrlsArray = workerUrls.split(",");
-            for (var workerUrl : workerUrlsArray) {
+        var workerUrlsArray = workerUrls.split(",");
+        WorkerMetadata.clearMetaData();
+        for (var workerUrl : workerUrlsArray) {
+            try {
+
                 HttpClient client = HttpClient.newHttpClient();
                 HttpRequest request = HttpRequest.newBuilder()
                         .uri(new URI(workerUrl))
@@ -42,12 +44,12 @@ public class WorkerStatusScheduler {
                 var workerId = body.path("checks").path(0).path("data").get("worker_id");
 
                 log.info("Worker status: " + workerId + " " + totalLag);
-                WorkerMetadata.clearMetaData();
                 WorkerMetadata.addWorkerLag(workerId.intValue(), totalLag.asLong());
+            } catch (Exception e) {
+                log.error("e", e);
             }
-
-        } catch (Exception e) {
-            log.error("e", e);
         }
+
+
     }
 }

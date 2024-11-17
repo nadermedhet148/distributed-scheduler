@@ -2,7 +2,7 @@
 
 
 
-docker compose exec kafka kafka-topics.sh --create --topic jobs --partitions 10 --replication-factor 1 --bootstrap-server localhost:9092
+docker compose exec kafka kafka-topics.sh --create --topic jobs --partitions 12 --replication-factor 1 --bootstrap-server localhost:9092
 
 
 max_retries=10

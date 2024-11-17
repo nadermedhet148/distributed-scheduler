@@ -15,7 +15,8 @@ public final class WorkerMetadata {
         return WorkersLag.getOrDefault(workerId, null);
     }
     public static void clearMetaData() {
-        WorkersLag.clear();
+        WorkersLag.forEach((k, v) -> WorkersLag.remove(k));
+        System.out.printf("WorkerMetadata cleared", WorkersLag);
     }
 
 

@@ -18,9 +18,9 @@ import java.util.concurrent.ConcurrentHashMap;
 public class JobExecutorScheduler {
     private static final Logger log = Logger.getLogger(JobExecutorScheduler.class);
 
-    @ConfigProperty(name = "partitions.count", defaultValue = "10")
+    @ConfigProperty(name = "partitions.count", defaultValue = "12")
     Integer partitionsCount;
-    @ConfigProperty(name = "worker.count", defaultValue = "1")
+    @ConfigProperty(name = "worker.count", defaultValue = "3")
     Integer workersCount;
     @ConfigProperty(name = "worker.max.capacity", defaultValue = "100")
     Long maxCapacity;
@@ -85,10 +85,9 @@ public class JobExecutorScheduler {
         var partition = segment % partitionsCount;
         var workerId = workerPartitions.get(partition);
         var lag = WorkerMetadata.getWorkerLag(workerId);
-        if (lag != null && lag > maxCapacity) {
-            getPartition(segment + (partitionsCount / workersCount), maxCapacity * 2);
+        if (lag == null || lag > maxCapacity) {
+            return getPartition(segment + (partitionsCount / workersCount), maxCapacity * 2);
         }
-        log.info("to: " + partition);
         return partition;
     }
 }

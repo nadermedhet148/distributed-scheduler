@@ -40,9 +40,11 @@ public class JobsData {
 
     public void dummyData() {
         try (var dbConnector = connector.getConnection().build()) {
-            for (int j = 0; j < 100; j++) {
-                dbConnector.execute("INSERT INTO scheduler.job (id, frequency, metadata, user_id, created_at, next_exec, last_exec, retry, segment)\n" +
-                        "VALUES (uuid(), '{\"type\": \"every_minute\", \"frequency\", 2}', '{}', 1, toTimestamp(now()), toTimestamp(now()), toTimestamp(now()), 1, " + j + ");");
+            for (int J = 0; J < 1000; J++) {
+                for (int i = 0; i < 12; i++) {
+                    dbConnector.execute("INSERT INTO scheduler.job (id, frequency, metadata, user_id, created_at, next_exec, last_exec, retry, segment)\n" +
+                            "VALUES (uuid(), '{\"type\": \"every_minute\", \"frequency\", 2}', '{}', 1, toTimestamp(now()), toTimestamp(now()), toTimestamp(now()), 1, " + i + ");");
+                }
             }
         } catch (Exception e) {
             log.error("e", e);

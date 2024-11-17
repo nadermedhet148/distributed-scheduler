@@ -56,9 +56,13 @@ services:
     environment:
         - KAFKA_BROKER=kafka:9094
         - WORKER_ID=0
-        - WORKER_COUNT=2
+        - WORKER_COUNT=3
         - KAFKA_JOBS_GROUP=jobs
-        - PARTITIONS_COUNT=10
+        - PARTITIONS_COUNT=12
+    ports:
+      - "8884:8884"
+    expose:
+      - "8884"
   worker2:
     image: worker
     build:
@@ -67,9 +71,28 @@ services:
     environment:
       - KAFKA_BROKER=kafka:9094
       - WORKER_ID=1
-      - WORKER_COUNT=2
+      - WORKER_COUNT=3
       - KAFKA_JOBS_GROUP=jobs
-      - PARTITIONS_COUNT=10
+      - PARTITIONS_COUNT=12
+    ports:
+      - "8885:8884"
+    expose:
+      - "8885"
+  worker3:
+    image: worker
+    build:
+      context: ./worker
+      dockerfile: app.Dockerfile
+    environment:
+      - KAFKA_BROKER=kafka:9094
+      - WORKER_ID=2
+      - WORKER_COUNT=3
+      - KAFKA_JOBS_GROUP=jobs
+      - PARTITIONS_COUNT=12
+    ports:
+      - "8886:8884"
+    expose:
+      - "8886"
   job-orchestrator:
     image: job-orchestrator
     build:
@@ -77,9 +100,9 @@ services:
       dockerfile: app.Dockerfile
     environment:
       - KAFKA_BROKER=kafka:9094
-      - WORKER_COUNT=2
-      - PARTITIONS_COUNT=10
-      - WORKER_URLS=http://worker1:8884/health,http://worker2:8884/health
+      - WORKER_COUNT=3
+      - PARTITIONS_COUNT=12
+      - WORKER_URLS=http://worker1:8884/health,http://worker2:8884/health,http://worker3:8884/health
       - DB_URL=node1
 volumes:
     kafka:
