@@ -1,9 +1,5 @@
 FROM amazoncorretto:21.0.2-alpine3.19
 
-COPY . /app
-WORKDIR /app
-
-RUN ./mvnw clean package -DskipTests
 # Copy the Quarkus application files
 COPY --chown=185 target/quarkus-app/lib/ /deployments/lib/
 COPY --chown=185 target/quarkus-app/*.jar /deployments/

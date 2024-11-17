@@ -55,7 +55,7 @@ public final class JobConsumer extends AbstractKafkaConsumer<JobConsumer> {
             var waitingTime = (new Random().nextInt(10) + 1) * 100;
             Thread.sleep(waitingTime);
             var job = objectMapper.readValue(body, Job.class);
-            System.out.println("Consumed: " + job.id() + " waiting time: " + waitingTime);
+//            System.out.println("Consumed: " + job.id() + " waiting time: " + waitingTime);
 
         } catch (Exception e) {
             log.error("Error consuming message", e);

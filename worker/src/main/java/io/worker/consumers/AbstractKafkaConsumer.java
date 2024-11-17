@@ -50,11 +50,11 @@ public sealed abstract class AbstractKafkaConsumer<T> permits JobConsumer {
         this.partitions = partitions;
         var virtualThreadFactory = Thread.ofVirtual().factory();
         this.executorService = new ThreadPoolExecutor(
-                100,
-                100,
+                20,
+                25,
                 0L,
                 TimeUnit.MILLISECONDS,
-                new SynchronousQueue<>(),
+                new LinkedBlockingQueue<>(100),
                 virtualThreadFactory
         );
         prepareConsumer(group, topic, partitions);
@@ -73,15 +73,12 @@ public sealed abstract class AbstractKafkaConsumer<T> permits JobConsumer {
         properties.setProperty(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG,
                 "org.apache.kafka.common.serialization.StringDeserializer");
         properties.setProperty(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
-        properties.setProperty(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "false");
-        properties.setProperty(ConsumerConfig.SESSION_TIMEOUT_MS_CONFIG, "30000");
-        properties.setProperty(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, "30");
-        properties.setProperty(ConsumerConfig.HEARTBEAT_INTERVAL_MS_CONFIG, "10000");
+        properties.setProperty(ConsumerConfig.SESSION_TIMEOUT_MS_CONFIG, "3000");
+        properties.setProperty(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, "100");
+        properties.setProperty(ConsumerConfig.HEARTBEAT_INTERVAL_MS_CONFIG, "1000");
 
         consumer = new KafkaConsumer<>(properties);
         consumer.assign(partitions.stream().map(partition -> new TopicPartition(topic, partition)).toList());
-        KafkaClientMetrics consumerKafkaMetrics = new KafkaClientMetrics(consumer);
-        consumerKafkaMetrics.bindTo(registry);
     }
 
     private void startKafkaMessageConsumer() {
@@ -99,19 +96,8 @@ public sealed abstract class AbstractKafkaConsumer<T> permits JobConsumer {
                 if (records.count() > 0) {
                     for (var record : records) {
                         executorService.execute(() -> {
-                            log.debugf(
-                                    "group= %s, topic= %s, partition= %s,  offset = %s , records = %s",
-                                    groupName,
-                                    topicName,
-                                    record.partition(),
-                                    record.offset(),
-                                    records.count()
-                            );
                             handle(record);
-
-
                         });
-
                         offsetPerPartitionMap.put(record.partition(), record.offset());
                     }
 
@@ -119,7 +105,9 @@ public sealed abstract class AbstractKafkaConsumer<T> permits JobConsumer {
                     offsetPerPartitionMap.entrySet().stream().forEach(ele -> {
                         TopicPartition topicPartition = new TopicPartition(this.topicName, ele.getKey());
                         OffsetAndMetadata offsetAndMetadata = new OffsetAndMetadata(ele.getValue());
-                        consumer.commitSync(Collections.singletonMap(topicPartition, offsetAndMetadata));
+//                        consumer.commitSync(Collections.singletonMap(topicPartition, offsetAndMetadata));
+                        log.debugf("commit offset for group= %s, topic= %s, partition= %s, offset= %s",
+                                groupName, topicName, ele.getKey(), ele.getValue());
                         consumer.seekToEnd(Collections.singletonList(topicPartition));
                         long endOffset = consumer.position(topicPartition);
                         addConsumerLag(topicName + "-" + ele.getKey(), endOffset - ele.getValue());
