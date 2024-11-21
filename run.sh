@@ -1,4 +1,4 @@
- docker compose up -d kafka node1 node2 kafka-ui
+ docker compose up -d kafka node1 kafka-ui
 
 
 

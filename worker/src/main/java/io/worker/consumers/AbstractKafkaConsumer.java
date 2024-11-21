@@ -50,8 +50,8 @@ public sealed abstract class AbstractKafkaConsumer<T> permits JobConsumer {
         this.partitions = partitions;
         var virtualThreadFactory = Thread.ofVirtual().factory();
         this.executorService = new ThreadPoolExecutor(
-                20,
-                25,
+                50,
+                100,
                 0L,
                 TimeUnit.MILLISECONDS,
                 new LinkedBlockingQueue<>(100),
@@ -74,7 +74,7 @@ public sealed abstract class AbstractKafkaConsumer<T> permits JobConsumer {
                 "org.apache.kafka.common.serialization.StringDeserializer");
         properties.setProperty(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
         properties.setProperty(ConsumerConfig.SESSION_TIMEOUT_MS_CONFIG, "3000");
-        properties.setProperty(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, "100");
+        properties.setProperty(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, "40");
         properties.setProperty(ConsumerConfig.HEARTBEAT_INTERVAL_MS_CONFIG, "1000");
 
         consumer = new KafkaConsumer<>(properties);

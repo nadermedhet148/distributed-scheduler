@@ -1,6 +1,6 @@
 -- create keyspace
 CREATE KEYSPACE scheduler
-WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 2};
+WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 1};
 
 -- create table
 CREATE TABLE scheduler.job (

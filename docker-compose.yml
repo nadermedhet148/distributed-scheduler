@@ -8,17 +8,17 @@ services:
       - "9160:9160"
     environment:
       CASSANDRA_CLUSTER_NAME: demo
-      CASSANDRA_SEEDS: node1,node2
+      CASSANDRA_SEEDS: node1
     volumes:
       - ./files:/files
     restart: unless-stopped
 
-  node2:
-    image: cassandra:4.0
-    environment:
-      CASSANDRA_CLUSTER_NAME: demo
-      CASSANDRA_SEEDS: node1,node2
-    restart: unless-stopped
+#  node2:
+#    image: cassandra:4.0
+#    environment:
+#      CASSANDRA_CLUSTER_NAME: demo
+#      CASSANDRA_SEEDS: node1,node2
+#    restart: unless-stopped
   kafka-ui:
     container_name: kafka-ui
     image: consdata/kouncil:latest
