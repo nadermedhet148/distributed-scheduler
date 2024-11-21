@@ -37,13 +37,6 @@ public sealed abstract class AbstractKafkaConsumer<T> permits JobConsumer {
     private KafkaConsumer<String, String> consumer;
     private ExecutorService executorService;
 
-    @Inject
-    MeterRegistry registry;
-
-    // The number of milliseconds between the message producing and message consumption.
-    // Each consumer needs to report the lag using reportLastConsumedMessageTimestamp() method.
-    private AtomicLong consumerLagInMillis;
-
     protected void initConsumer(String group, String topic, List<Integer> partitions) {
         groupName = group;
         topicName = topic;
