@@ -20,7 +20,7 @@ public final class Schedulers {
   @Inject
   WorkerStatusScheduler workerStatusScheduler;
 
-  @Scheduled(every = "10s", concurrentExecution = Scheduled.ConcurrentExecution.SKIP)
+  @Scheduled(every = "1s", concurrentExecution = Scheduled.ConcurrentExecution.SKIP)
   void job() {
     log.info("run worker status");
     workerStatusScheduler.exec();

@@ -97,8 +97,6 @@ public sealed abstract class AbstractKafkaConsumer<T> permits JobConsumer {
                     // Commit the offset for processed message
                     offsetPerPartitionMap.entrySet().stream().forEach(ele -> {
                         TopicPartition topicPartition = new TopicPartition(this.topicName, ele.getKey());
-                        OffsetAndMetadata offsetAndMetadata = new OffsetAndMetadata(ele.getValue());
-//                        consumer.commitSync(Collections.singletonMap(topicPartition, offsetAndMetadata));
                         log.debugf("commit offset for group= %s, topic= %s, partition= %s, offset= %s",
                                 groupName, topicName, ele.getKey(), ele.getValue());
                         consumer.seekToEnd(Collections.singletonList(topicPartition));
